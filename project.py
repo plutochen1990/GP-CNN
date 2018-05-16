@@ -107,11 +107,30 @@ class Model(Net):
 			testf = sess.run([Mnist.test.image])[0]
 			# print testf.shape
 			n, w, h, c = testf.shape
-			#for i in range(n):
+                        tmp0 = np.zeros((n * w, h))
+                        tmp02 = np.zeros((n * w, h))
+                        tmp05 = np.zeros((n * w, h))
+                        tmp08 = np.zeros((n * w, h))
+                        tmp90 = np.zeros((n * w, h))
+                        tmp_90 = np.zeros((n * w, h))
+			for i in range(n):
+                            tmp0[i * w : (i + 1) * w, 0 : h] = testf[i, :, :, 0]
+                            tmp02[i * w : (i + 1) * w, 0 : h] = addnoisy(testf[i, :, :, 0], 0.2)
+                            tmp05[i * w : (i + 1) * w, 0 : h] = addnoisy(testf[i, :, :, 0], 0.5)
+                            tmp08[i * w : (i + 1) * w, 0 : h] = addnoisy(testf[i, :, :, 0], 0.8)
+                            tmp90[i * w : (i + 1) * w, 0 : h] = rotate90(testf[i, :, :, 0])
+                            tmp_90[i * w : (i + 1) * w, 0 : h] = rotate_90(testf[i, :, :, 0])# addnoisy(testf[i, :, :, 0], 0.8)
                             #testf[i, :, :, 0] = addnoisy(testf[i, :, :, 0], 0.0)
 			    #testf[i, :, :, 0] = rotate90(testf[i, :, :, 0])
 			    #testf[i, :, :, 0] = rotate_90(testf[i, :, :, 0])
 		    	    #print testf[i, :, :, 0]
+                        np.savetxt('./image0.txt', tmp0)
+                        np.savetxt('./image02.txt', tmp02)
+                        np.savetxt('./image05.txt', tmp05)
+                        np.savetxt('./image08.txt', tmp08)
+                        np.savetxt('./image90.txt', tmp90)
+                        np.savetxt('./image_90.txt', tmp_90)
+
 			testf_tensor = tf.convert_to_tensor(testf, dtype=tf.float32)
 			predict = self.forward(testf_tensor)
 
