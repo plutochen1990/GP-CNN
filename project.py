@@ -4,6 +4,11 @@ import sugartensor as tf
 import sys, os
 import glob
 import time
+from change import *
+from GP import *
+import random
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 import argparse
 
@@ -51,23 +56,67 @@ class Model(Net):
 	def train(self):
 		predict = self.forward(Mnist.train.image)
 
-		loss = predict.sg_ce(target=Mnist.train.label)
+		#######GP
+		sess = tf.Session()
+		with tf.sg_queue_context(sess):
+			tf.sg_init(sess)
+			trainf = sess.run([Mnist.train.image])[0]
+			n, w, h, c = trainf.shape
+			print trainf.shape
+			np.savetxt('./image.txt', trainf[1, :, :, 0])
+			#print trainf[1, :, :, 0]
+			#plt.imshow(trainf[1, :, :, 0])
+			#plt.axis('off')
+			#plt.show()
+			#print type(trainf[1, :, :, 0])
 
-		# validation
-		acc = (predict.sg_reuse(input=Mnist.valid.image).sg_softmax()
-					.sg_accuracy(target=Mnist.valid.label, name='validation'))
+			transfer = np.zeros((n, w, h, c))
+			for i in range(n):
+				candi = random.randint(0, n - 1)
+				#print GP(trainf[i, :, :, 0], trainf[candi, :, :, 0])
 
-		tf.sg_train(loss=loss, eval_metric=[acc], max_ep=max_ep, save_dir=save_dir, ep_size=Mnist.train.num_batch, log_interval=10)
+				#transfer[i, :, :, :] = GP(trainf[i, :, :, :], trainf[candi, :, :, :])
+				#print trainsfer[i, :, :, :]
+				t = tf.convert_to_tensor(transfer, dtype=tf.float32)
+				gp_predict = predict.sg_reuse(input=t)
+				#print trainf.shape
+		sess.close()                    
+
+
+
+ #                #######
+
+	# 	loss = predict.sg_ce(target=Mnist.train.label)
+
+	# 	# validation
+	# 	acc = (predict.sg_reuse(input=Mnist.valid.image).sg_softmax()
+	# 				.sg_accuracy(target=Mnist.valid.label, name='validation'))
+
+	# 	tf.sg_train(loss=loss, eval_metric=[acc], max_ep=max_ep, save_dir=save_dir, ep_size=Mnist.train.num_batch, log_interval=10)
 
 	def test(self):
-		predict = self.forward(Mnist.test.image)
+		# predict = self.forward(Mnist.test.image)
 
-		acc = (predict.sg_softmax()
-				.sg_accuracy(target=Mnist.test.label, name='test'))
+
+		# acc = (predict.sg_softmax()
+		# 		.sg_accuracy(target=Mnist.test.label, name='test'))
 
 		sess = tf.Session()
 		with tf.sg_queue_context(sess):
 			tf.sg_init(sess)
+			testf = sess.run([Mnist.test.image])[0]
+			# print testf.shape
+			n, w, h, c = testf.shape
+			#for i in range(n):
+                            #testf[i, :, :, 0] = addnoisy(testf[i, :, :, 0], 0.0)
+			    #testf[i, :, :, 0] = rotate90(testf[i, :, :, 0])
+			    #testf[i, :, :, 0] = rotate_90(testf[i, :, :, 0])
+		    	    #print testf[i, :, :, 0]
+			testf_tensor = tf.convert_to_tensor(testf, dtype=tf.float32)
+			predict = self.forward(testf_tensor)
+
+			acc = (predict.sg_softmax()
+				.sg_accuracy(target=Mnist.test.label, name='test'))            
 
 			saver=tf.train.Saver()
 			saver.restore(sess, tf.train.latest_checkpoint(save_dir))
@@ -76,7 +125,7 @@ class Model(Net):
 			for i in range(Mnist.test.num_batch):
 				total_accuracy += np.sum(sess.run([acc])[0])
 
-			print 'Evaluation accuracy: {}'.format(float(total_accuracy)/(Mnist.test.num_batch*batch_size))
+			print('Evaluation accuracy: {}'.format(float(total_accuracy)/(Mnist.test.num_batch*batch_size)))
 
 		# close session
 		sess.close()
