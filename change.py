@@ -6,7 +6,7 @@ import random
 def addnoisy(img, var):
 	w, h = img.shape
 	noisy = np.random.normal(0, var, (w, h))
-        print noisy
+        # print noisy
 	return img + noisy
 
 def rotate90(img):

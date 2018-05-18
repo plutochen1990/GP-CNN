@@ -18,21 +18,23 @@ def crossover(v, v0, w, h):
 
 def mutation(v, w, h):
 	for i in range(w * h):
-		if random.random() > 0.7:
-			if v[i] == 1:
-				v[i] = 0
-			else:
-				v[i] = 1
+    	    if random.random() > 0.7:
+                #print np.random.normal(0, 0.5)
+	        v[i] = v[i] + np.random.normal(0, 0.5)
+                    #if v[i] == 1:
+			#	v[i] = 0
+			#else:
+			#	v[i] = 1
 	return v
 
 
 
-def GP(img, img0):
+def GP(img, img0, seed):
     w, h = img.shape
     vimg = np.reshape(img, (w * h, 1))
     vimg0 = np.reshape(img0, (w * h, 1))
-    seed = random.random()
-    print "seed:", seed
+    # seed = random.random()
+    # print "seed:", seed
     if seed < 0.8:
     	next_vimg = crossover(vimg, vimg0, w, h)
 
@@ -52,6 +54,8 @@ def GP(img, img0):
 #h = 10
 #a = np.random.randint(0, 2, size = [w, h])
 #aa = np.random.randint(0, 2, size = [w, h])
+#a = float(a)
+#aa = float(aa)
 #b = GP(a, aa)
 #print b
 #plt.imshow(b)
